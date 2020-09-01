@@ -310,6 +310,9 @@ namespace Xamarin.Forms.Core.UnitTests
 
 			public event PropertyChangedEventHandler PropertyChanged;
 
+			public TestShellViewModel SubViewModel { get; set; }
+
+			public TestShellViewModel SubViewModel2 { get; set; }
 
 			public string Text
 			{

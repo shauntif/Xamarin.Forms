@@ -197,6 +197,57 @@ namespace Xamarin.Forms.Core.UnitTests
 
 		}
 
+		[Test]
+		public void BindingToStuff()
+		{
+			Shell shell = new Shell();
+			FlyoutItem item = new FlyoutItem() { FlyoutDisplayOptions = FlyoutDisplayOptions.AsMultipleItems };
+			ShellContent shellContent1 = new ShellContent();
+
+			shellContent1.BindingContextChanged += (_, __) =>
+			{
+
+			};
+
+			ShellContent shellContent2 = new ShellContent();
+
+			item.Items.Add(shellContent1);
+			item.Items.Add(shellContent2);
+			shell.Items.Add(item);
+			
+			var vm = new TestShellViewModel();
+			vm.SubViewModel = new TestShellViewModel() { Text = "Item1" };
+			vm.SubViewModel2 = new TestShellViewModel() { Text = "Item2" };
+			shell.BindingContext = vm;
+
+			shellContent1.SetBinding(BindableObject.BindingContextProperty, "SubViewModel");
+			shellContent2.SetBinding(BindableObject.BindingContextProperty, "SubViewModel2");
+
+			shell.ItemTemplate = new DataTemplate(() =>
+			{
+				Label label = new Label();
+				label.BindingContextChanged += (_, __) =>
+				{
+
+				};
+
+				label.SetBinding(Label.TextProperty, "BindingContext.Text");
+				return label;
+			});
+
+			var flyoutItems = (shell as IShellController).GenerateFlyoutGrouping();
+
+
+			var label1 = GetFlyoutItemDataTemplateElement<Label>(shell, flyoutItems[0][0]);
+			var label2 = GetFlyoutItemDataTemplateElement<Label>(shell, flyoutItems[0][1]);
+
+			Assert.AreEqual(label1.BindingContext, shellContent1);
+			Assert.AreEqual(label2.BindingContext, shellContent2);
+
+			Assert.AreEqual("Item1", label1.Text);
+			Assert.AreEqual("Item2", label2.Text);
+		}
+
 
 		T GetFlyoutItemDataTemplateElement<T>(Shell shell, BindableObject bo)
 			where T : class
