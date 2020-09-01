@@ -198,16 +198,11 @@ namespace Xamarin.Forms.Core.UnitTests
 		}
 
 		[Test]
-		public void BindingToStuff()
+		public void BindingContextSetsCorrectlyWhenUsingAsMultipleItemAndImplicitlyGeneratedShellSections()
 		{
 			Shell shell = new Shell();
 			FlyoutItem item = new FlyoutItem() { FlyoutDisplayOptions = FlyoutDisplayOptions.AsMultipleItems };
 			ShellContent shellContent1 = new ShellContent();
-
-			shellContent1.BindingContextChanged += (_, __) =>
-			{
-
-			};
 
 			ShellContent shellContent2 = new ShellContent();
 
@@ -226,10 +221,6 @@ namespace Xamarin.Forms.Core.UnitTests
 			shell.ItemTemplate = new DataTemplate(() =>
 			{
 				Label label = new Label();
-				label.BindingContextChanged += (_, __) =>
-				{
-
-				};
 
 				label.SetBinding(Label.TextProperty, "BindingContext.Text");
 				return label;
