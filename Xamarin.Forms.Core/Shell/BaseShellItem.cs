@@ -19,6 +19,7 @@ namespace Xamarin.Forms
 		const string DefaultFlyoutItemLabelStyle = "Default_FlyoutItemLabelStyle";
 		const string DefaultFlyoutItemImageStyle = "Default_FlyoutItemImageStyle";
 		const string DefaultFlyoutItemLayoutStyle = "Default_FlyoutItemLayoutStyle";
+		static Dictionary<(string, string), DataTemplate> s_defaultFlyoutItemTemplates = new Dictionary<(string, string), DataTemplate>();
 
 		#region PropertyKeys
 
@@ -308,9 +309,15 @@ namespace Xamarin.Forms
 				.StyleClass = bindableObjectStyle;
 		}
 
-		internal static DataTemplate CreateDefaultFlyoutItemCell(IStyleSelectable styleSelectable, string textBinding, string iconBinding)
+		internal static DataTemplate CreateDefaultFlyoutItemCell(string textBinding, string iconBinding)
 		{
-			return new DataTemplate(() =>
+			DataTemplate returnValue;
+			var key = (textBinding, iconBinding);
+
+			if (s_defaultFlyoutItemTemplates.TryGetValue(key, out returnValue))
+				return returnValue;
+
+			returnValue = new DataTemplate(() =>
 			{
 				var grid = new Grid();
 				if (Device.RuntimePlatform == Device.UWP)
@@ -438,10 +445,22 @@ namespace Xamarin.Forms
 				nameScope.RegisterName("FlyoutItemImage", image);
 				nameScope.RegisterName("FlyoutItemLabel", label);
 
-				UpdateFlyoutItemStyles(grid, styleSelectable);
+				grid.BindingContextChanged += (sender, __) =>
+				{
+					if (sender is Grid g)
+					{
+						var bo = g.BindingContext as BindableObject;
+						var styleClassSource = Shell.GetBindableObjectWithFlyoutItemTemplate(bo) as IStyleSelectable;
+						UpdateFlyoutItemStyles(g, styleClassSource);
+					}
+				};
+
 				grid.Resources = new ResourceDictionary() { defaultGridClass, defaultLabelClass, defaultImageClass };
 				return grid;
 			});
+
+			s_defaultFlyoutItemTemplates.Add(key, returnValue);
+			return returnValue;
 		}
 	}
 
