@@ -43,7 +43,8 @@ namespace Xamarin.Forms.Platform.iOS
 			base.OnElementPropertyChanged(sender, e);
 
 			if (e.PropertyName == VisualElement.BackgroundColorProperty.PropertyName ||
-			    e.PropertyName == Xamarin.Forms.Frame.BorderColorProperty.PropertyName ||
+				e.PropertyName == VisualElement.BackgroundProperty.PropertyName ||
+				e.PropertyName == Xamarin.Forms.Frame.BorderColorProperty.PropertyName ||
 				e.PropertyName == Xamarin.Forms.Frame.HasShadowProperty.PropertyName ||
 				e.PropertyName == Xamarin.Forms.Frame.CornerRadiusProperty.PropertyName ||
 				e.PropertyName == Xamarin.Forms.Frame.IsClippedToBoundsProperty.PropertyName ||
@@ -54,11 +55,9 @@ namespace Xamarin.Forms.Platform.iOS
 		public override void TraitCollectionDidChange(UITraitCollection previousTraitCollection)
 		{
 			base.TraitCollectionDidChange(previousTraitCollection);
-#if __XCODE11__
 			// Make sure the control adheres to changes in UI theme
 			if (Forms.IsiOS13OrNewer && previousTraitCollection?.UserInterfaceStyle != TraitCollection.UserInterfaceStyle)
 				SetupLayer();
-#endif
 		}
 
 		public virtual void SetupLayer()
@@ -72,6 +71,7 @@ namespace Xamarin.Forms.Platform.iOS
 				cornerRadius = 5f; // default corner radius
 
 			_actualView.Layer.CornerRadius = cornerRadius;
+			_actualView.Layer.MasksToBounds = cornerRadius > 0;
 
 			if (Element.BackgroundColor == Color.Default)
 				_actualView.Layer.BackgroundColor = ColorExtensions.BackgroundColor.CGColor;
@@ -81,6 +81,20 @@ namespace Xamarin.Forms.Platform.iOS
 				// the corner radius, shadow, etc. so override that behaviour here
 				BackgroundColor = UIColor.Clear;
 				_actualView.Layer.BackgroundColor = Element.BackgroundColor.ToCGColor();
+			}
+
+			_actualView.Layer.RemoveBackgroundLayer();
+
+			if (!Brush.IsNullOrEmpty(Element.Background))
+			{
+				var backgroundLayer = this.GetBackgroundLayer(Element.Background);
+
+				if (backgroundLayer != null)
+				{
+					_actualView.Layer.BackgroundColor = UIColor.Clear.CGColor;
+					Layer.InsertBackgroundLayer(backgroundLayer, 0);
+					backgroundLayer.CornerRadius = cornerRadius;
+				}
 			}
 
 			if (Element.BorderColor == Color.Default)
