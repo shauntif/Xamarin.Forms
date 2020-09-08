@@ -19,7 +19,6 @@ namespace Xamarin.Forms
 		const string DefaultFlyoutItemLabelStyle = "Default_FlyoutItemLabelStyle";
 		const string DefaultFlyoutItemImageStyle = "Default_FlyoutItemImageStyle";
 		const string DefaultFlyoutItemLayoutStyle = "Default_FlyoutItemLayoutStyle";
-		static Dictionary<(string, string), DataTemplate> s_defaultFlyoutItemTemplates = new Dictionary<(string, string), DataTemplate>();
 
 		#region PropertyKeys
 
@@ -311,13 +310,7 @@ namespace Xamarin.Forms
 
 		internal static DataTemplate CreateDefaultFlyoutItemCell(string textBinding, string iconBinding)
 		{
-			DataTemplate returnValue;
-			var key = (textBinding, iconBinding);
-
-			if (s_defaultFlyoutItemTemplates.TryGetValue(key, out returnValue))
-				return returnValue;
-
-			returnValue = new DataTemplate(() =>
+			return new DataTemplate(() =>
 			{
 				var grid = new Grid();
 				if (Device.RuntimePlatform == Device.UWP)
@@ -458,9 +451,6 @@ namespace Xamarin.Forms
 				grid.Resources = new ResourceDictionary() { defaultGridClass, defaultLabelClass, defaultImageClass };
 				return grid;
 			});
-
-			s_defaultFlyoutItemTemplates.Add(key, returnValue);
-			return returnValue;
 		}
 	}
 
